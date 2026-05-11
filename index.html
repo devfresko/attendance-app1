@@ -357,9 +357,9 @@ body{background:var(--bg);color:var(--txt);font-family:'Plus Jakarta Sans',sans-
       </div>
       <div class="fld">
         <label for="lPass">Password</label>
-        <input id="lPass" type="password" placeholder="Enter password"/>
+        <input id="lPass" type="password" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()"/>
       </div>
-      <button id="loginBtn" class="btn-login">Sign In</button>
+      <button id="loginBtn" class="btn-login" onclick="doLogin()">Sign In</button>
     </div>
   </div>
 </div>
@@ -450,8 +450,8 @@ body{background:var(--bg);color:var(--txt);font-family:'Plus Jakarta Sans',sans-
               <div class="sc"><div class="sv2 c-red"  id="stLate">--</div><div class="sl2">Late</div></div>
               <div class="sc"><div class="sv2 c-green" id="stAvg">--</div><div class="sl2">Avg Hrs</div></div>
             </div>
-            <button id="checkInBtn"  class="btn-in"  style="display:none">&#128205; Check In</button>
-            <button id="checkOutBtn" class="btn-out" style="display:none">&#127937; Check Out</button>
+            <button id="checkInBtn"  class="btn-in"  style="display:none" onclick="triggerIn()">&#128205; Check In</button>
+            <button id="checkOutBtn" class="btn-out" style="display:none" onclick="triggerOut()">&#127937; Check Out</button>
           </div>
         </div>
       </div>
@@ -564,9 +564,6 @@ window.addEventListener('load',function(){
   var af=document.getElementById('anFrom'),at=document.getElementById('anTo');
   if(af)af.value=ago;if(at)at.value=today;
   if(_U){initApp();}
-  // Login button
-  document.getElementById('loginBtn').addEventListener('click',doLogin);
-  document.getElementById('lPass').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
   // Modal backdrop close
   ['modalIn','modalOut'].forEach(function(id){
     var el=document.getElementById(id);
@@ -733,13 +730,6 @@ function loadMonthStats(){
 }
 
 // --- Check In ---
-document.addEventListener('DOMContentLoaded',function(){
-  var ci=document.getElementById('checkInBtn');
-  var co=document.getElementById('checkOutBtn');
-  if(ci)ci.addEventListener('click',triggerIn);
-  if(co)co.addEventListener('click',triggerOut);
-});
-
 function triggerIn(){
   if(!_gpsReady||!_gpsData){gpsErrModal('modalIn','mInBody','Check In');return;}
   var loc=getLocStr(),now=new Date(),t=pad(now.getHours())+':'+pad(now.getMinutes());
