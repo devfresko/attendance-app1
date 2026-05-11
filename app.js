@@ -2,7 +2,7 @@
 // AttendanceApp — app.js
 // REPLACE THIS with your deployed GAS URL
 // ============================================================
-var API = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
+var API = 'https://script.google.com/macros/s/AKfycbwquTtDTpCwbI4Sa7C7Uq31lAXwKq-uFymMOiV66zagfZ9b-Nbb2ln1TifAWiT4DJm_cQ/exec';
 
 // ─── State ────────────────────────────────────────────────────
 var _U = null, _TOKEN = null, _cbIdx = 0;
