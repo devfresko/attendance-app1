@@ -79,13 +79,24 @@ window.addEventListener('load', function() {
 
 // ─── Page Router ──────────────────────────────────────────────
 function showPage(id) {
+  var loginEl = document.getElementById('pg-login');
+  var shellEl = document.getElementById('appShell');
+
+  if (id === 'login') {
+    if (loginEl) loginEl.style.display = 'flex';
+    if (shellEl) shellEl.style.display = 'none';
+    return;
+  }
+
+  if (loginEl) loginEl.style.display = 'none';
+  if (shellEl) shellEl.style.display = 'flex';
+
   document.querySelectorAll('.page').forEach(function(p) {
     p.classList.remove('active');
   });
   var pg = document.getElementById('pg-' + id);
   if (pg) pg.classList.add('active');
 
-  // Nav highlight
   document.querySelectorAll('.nav-btn').forEach(function(b) {
     b.classList.toggle('active', b.dataset.page === id);
   });
