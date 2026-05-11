@@ -238,35 +238,15 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Segoe 
 <div id="toast" class="toast"></div>
 
 <script>
-// Show correct shell
-window.addEventListener('load', function() {
-  // Show today's date
+// Run immediately (no wait) — decide which shell to show
+(function() {
+  var hasSession = !!(localStorage.getItem('att_token') && localStorage.getItem('att_user'));
+  document.getElementById('pg-login').style.display = hasSession ? 'none' : 'flex';
+  document.getElementById('appShell').style.display = hasSession ? 'flex' : 'none';
+  // Set today date
   var d = document.getElementById('todayDate');
-  if (d) d.textContent = new Date().toLocaleDateString('en-IN', {weekday:'long',day:'numeric',month:'long'});
-
-  // Decide which shell to show based on session
-  var hasSession = localStorage.getItem('att_token') && localStorage.getItem('att_user');
-  document.getElementById('pg-login').style.display    = hasSession ? 'none' : '';
-  document.getElementById('appShell').style.display    = hasSession ? ''     : 'none';
-  // Page active states handled by app.js showPage()
-});
-
-// Override showPage to also swap shells
-var _origShowPage;
-window.addEventListener('load', function() {
-  _origShowPage = showPage;
-  showPage = function(id) {
-    if (id === 'login') {
-      document.getElementById('pg-login').style.display  = '';
-      document.getElementById('appShell').style.display  = 'none';
-      document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
-    } else {
-      document.getElementById('pg-login').style.display  = 'none';
-      document.getElementById('appShell').style.display  = '';
-      _origShowPage(id);
-    }
-  };
-});
+  if (d) d.textContent = new Date().toLocaleDateString('en-IN', {weekday:'long', day:'numeric', month:'long'});
+})();
 </script>
 <script src="app.js"></script>
 </body>
