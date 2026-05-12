@@ -151,7 +151,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Plus Jakarta Sans',sans-
 .erow:last-child{border-bottom:none;}
 .er-hdr{background:rgba(43,191,179,.06);font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--txt2);}
 .ename{flex:1;min-width:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ecell{width:44px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:.74rem;font-weight:600;}
+.ecell{width:38px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:.74rem;font-weight:600;}
 .filter-bar{display:flex;gap:6px;align-items:flex-end;margin-bottom:12px;flex-wrap:wrap;}
 .filter-bar .fld{flex:1;min-width:100px;margin:0;}
 .filter-bar .fld input{padding:.55rem .7rem;font-size:.8rem;}
@@ -684,58 +684,110 @@ function loadAnalytics(){
 }
 
 function renderAnalytics(r){
-  var s=r.summary,byEmp=r.byEmployee||[],byDow=r.byDow||{},byDept=r.byDept||[],byHour=r.byHour||{};
-  var html='<div class="an-g4">'
+  var s=r.summary,byEmp=r.byEmployee||[],byDow=r.byDow||{},byDept=r.byDept||[],byHour=r.byHour||{},trend=r.trend||[];
+
+  /* -- Summary Cards -- */
+  var html2='<div class="an-g4">'
     +'<div class="an-card"><div class="anv c-teal">'+s.present+'</div><div class="anl">Present Days</div></div>'
     +'<div class="an-card"><div class="anv c-red">'+s.late+'</div><div class="anl">Late Arrivals</div></div>'
     +'<div class="an-card"><div class="anv c-green">'+s.attendanceRate+'%</div><div class="anl">Att. Rate</div></div>'
     +'<div class="an-card"><div class="anv c-orange">'+s.totalOT+'h</div><div class="anl">Total OT</div></div>'
     +'</div>';
-  html+='<div class="an-card" style="margin-bottom:12px;padding:14px;">'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center">'
-    +'<div><div style="font-size:.7rem;color:var(--txt2);font-weight:600">Avg Hrs/Day</div><div class="anv c-teal" style="font-size:1.3rem">'+s.avgHours+'h</div></div>'
-    +'<div><div style="font-size:.7rem;color:var(--txt2);font-weight:600">Total Records</div><div class="anv c-green" style="font-size:1.3rem">'+s.total+'</div></div>'
-    +'<div><div style="font-size:.7rem;color:var(--txt2);font-weight:600">Employees</div><div class="anv c-orange" style="font-size:1.3rem">'+(r.totalEmployees||byEmp.length)+'</div></div>'
-    +'</div></div>';
+
+  /* -- KPI Strip -- */
+  html2+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">'
+    +'<div class="an-card" style="text-align:center"><div style="font-size:.7rem;color:var(--txt2);font-weight:600">Avg Hrs/Day</div><div class="anv c-teal" style="font-size:1.3rem">'+s.avgHours+'h</div></div>'
+    +'<div class="an-card" style="text-align:center"><div style="font-size:.7rem;color:var(--txt2);font-weight:600">Late Rate</div><div class="anv c-red" style="font-size:1.3rem">'+s.lateRate+'%</div></div>'
+    +'<div class="an-card" style="text-align:center"><div style="font-size:.7rem;color:var(--txt2);font-weight:600">Avg Late By</div><div class="anv c-orange" style="font-size:1.3rem">'+s.avgLateByMins+'m</div></div>'
+    +'</div>';
+
+  /* -- 14-Day Trend -- */
+  if(trend.length>0){
+    var tmax=Math.max.apply(null,trend.map(function(x){return x.count;}))||1;
+    html2+='<div class="sec-hdr">14-Day Attendance Trend</div>';
+    html2+='<div class="bar-chart"><div class="bars" style="height:70px;gap:3px">';
+    trend.forEach(function(t){
+      var ht=Math.round((t.count/tmax)*100);
+      var lbl=t.date.slice(5); // MM-DD
+      var isToday=t.date===new Date().toISOString().slice(0,10);
+      var bg=isToday?'var(--mix-g)':'var(--teal-g)';
+      html2+='<div class="bar-col" style="gap:2px"><div class="bar-val">'+t.count+'</div>'
+        +'<div class="bar-fill" style="height:'+ht+'%;background:'+bg+(isToday?';box-shadow:0 0 8px rgba(43,191,179,.5)':'')+'"></div>'
+        +'<div class="bar-lbl" style="font-size:.5rem">'+lbl+'</div></div>';
+    });
+    html2+='</div></div>';
+  }
+
+  /* -- Day of Week -- */
   var dow=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   var dv=dow.map(function(_,i){return byDow[i]||0;});
   var dm=Math.max.apply(null,dv)||1;
-  html+='<div class="sec-hdr">Attendance by Day</div><div class="bar-chart"><div class="bars">';
+  html2+='<div class="sec-hdr">Attendance by Day of Week</div>';
+  html2+='<div class="bar-chart"><div class="bars">';
   dow.forEach(function(lbl,i){
     var h2=Math.round((dv[i]/dm)*100);
-    var bg=i===0||i===6?'var(--green-g)':'var(--teal-g)';
-    html+='<div class="bar-col"><div class="bar-val">'+dv[i]+'</div><div class="bar-fill" style="height:'+h2+'%;background:'+bg+'"></div><div class="bar-lbl">'+lbl+'</div></div>';
+    var bg=(i===0||i===6)?'var(--green-g)':'var(--teal-g)';
+    html2+='<div class="bar-col"><div class="bar-val">'+dv[i]+'</div>'
+      +'<div class="bar-fill" style="height:'+h2+'%;background:'+bg+'"></div>'
+      +'<div class="bar-lbl">'+lbl+'</div></div>';
   });
-  html+='</div></div>';
+  html2+='</div></div>';
+
+  /* -- Check-In Heatmap -- */
   var hkeys=Object.keys(byHour).map(Number).sort(function(a,b){return a-b;});
   if(hkeys.length>0){
     var hmax=Math.max.apply(null,hkeys.map(function(k){return byHour[k];}));
-    html+='<div class="sec-hdr">Check-In Time Heatmap</div><div class="bar-chart"><div class="bars" style="height:70px">';
+    html2+='<div class="sec-hdr">Check-In Time Heatmap</div>';
+    html2+='<div class="bar-chart"><div class="bars" style="height:70px">';
     hkeys.forEach(function(h2){
       var ht=Math.round((byHour[h2]/hmax)*100);
-      html+='<div class="bar-col"><div class="bar-val">'+byHour[h2]+'</div><div class="bar-fill" style="height:'+ht+'%;background:'+(h2<=9?'var(--green-g)':'var(--red-g)')+'"></div><div class="bar-lbl">'+h2+'h</div></div>';
+      var bg=h2<=9?'var(--green-g)':'var(--red-g)';
+      html2+='<div class="bar-col"><div class="bar-val">'+byHour[h2]+'</div>'
+        +'<div class="bar-fill" style="height:'+ht+'%;background:'+bg+'"></div>'
+        +'<div class="bar-lbl">'+h2+'h</div></div>';
     });
-    html+='</div></div>';
+    html2+='</div></div>';
   }
+
+  /* -- Department Table -- */
   if(byDept.length>0){
-    html+='<div class="sec-hdr">By Department</div><div class="etable"><div class="erow er-hdr"><div class="ename">Dept</div><div class="ecell">Days</div><div class="ecell">Late</div><div class="ecell">Late%</div></div>';
-    byDept.forEach(function(d){
-      var lp=d.present>0?Math.round(d.late/d.present*100):0;
-      html+='<div class="erow"><div class="ename">'+d.dept+'</div><div class="ecell c-teal">'+d.present+'</div><div class="ecell c-red">'+d.late+'</div><div class="ecell c-orange">'+lp+'%</div></div>';
+    html2+='<div class="sec-hdr">By Department</div>';
+    html2+='<div class="etable"><div class="erow er-hdr"><div class="ename">Department</div><div class="ecell">Days</div><div class="ecell">Late</div><div class="ecell">Avg Hrs</div></div>';
+    byDept.sort(function(a,b){return b.present-a.present;}).forEach(function(d){
+      var avg=d.present>0?(d.hrs/d.present).toFixed(1):'0';
+      html2+='<div class="erow"><div class="ename">'+d.dept+'</div>'
+        +'<div class="ecell c-teal">'+d.present+'</div>'
+        +'<div class="ecell c-red">'+d.late+'</div>'
+        +'<div class="ecell c-green">'+avg+'h</div></div>';
     });
-    html+='</div>';
+    html2+='</div>';
   }
+
+  /* -- Employee Leaderboard -- */
   if(byEmp.length>0){
-    html+='<div class="sec-hdr">Employee Summary</div><div class="etable"><div class="erow er-hdr"><div class="ename">Employee</div><div class="ecell">Days</div><div class="ecell">Late</div><div class="ecell">OT</div></div>';
+    html2+='<div class="sec-hdr">Employee Summary</div>';
+    html2+='<div class="etable">'
+      +'<div class="erow er-hdr"><div class="ename">Employee</div><div class="ecell">Days</div><div class="ecell">Late</div><div class="ecell">Avg Hrs</div><div class="ecell">OT</div></div>';
     byEmp.sort(function(a,b){return b.present-a.present;}).forEach(function(e){
-      html+='<div class="erow"><div class="ename" title="'+e.email+'">'+e.email.split('@')[0]+'</div><div class="ecell c-teal">'+e.present+'</div><div class="ecell" style="color:'+(e.late>0?'#ff5f6d':'var(--txt3)')+'">'+e.late+'</div><div class="ecell c-orange">'+e.ot.toFixed(1)+'h</div></div>';
+      var nm=e.name||e.email.split('@')[0];
+      html2+='<div class="erow">'
+        +'<div class="ename" title="'+e.email+'">'
+        +'<div style="font-weight:700;font-size:.78rem">'+nm+'</div>'
+        +'<div style="font-size:.62rem;color:var(--txt3)">'+e.dept+'</div>'
+        +'</div>'
+        +'<div class="ecell c-teal">'+e.present+'</div>'
+        +'<div class="ecell" style="color:'+(e.late>0?'#ff5f6d':'var(--txt3)')+'">'+e.late+'</div>'
+        +'<div class="ecell c-green">'+e.avgHrs+'h</div>'
+        +'<div class="ecell c-orange">'+e.ot+'h</div>'
+        +'</div>';
     });
-    html+='</div>';
+    html2+='</div>';
   }
-  ge('anContent').innerHTML=html;
+
+  ge('anContent').innerHTML=html2;
 }
 
-/* ADMIN */
+
 function loadAdmin(){
   var isA=_U&&(_U.role==='admin'||_U.role==='hr'||_U.role==='owner');
   if(!isA){ge('adminList').innerHTML='<div class="empty">Access denied.</div>';return;}
